@@ -1,1 +1,1 @@
-# -hospitalization-nowcast-hub-validations
+# hospitalization-nowcast-hub-validations
