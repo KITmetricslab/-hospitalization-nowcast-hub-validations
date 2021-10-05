@@ -121,8 +121,8 @@ if len(all_errors) > 0:
     for filename, errors in all_errors.items():
         print(f"\n* ERROR{'S' if len(errors) > 1 else ''} IN ", filename)
         for error in errors:
-            print('\t-', error)
-            print('____________________')
+            print('-', error)
+            print('-----------------------------')
     print(f"\n✗ Errors found in {len(all_errors)} file{'s' if len(all_errors) > 1 else ''}. Error details are above.")
 else:
     print("\n✓ No errors.")
@@ -131,5 +131,5 @@ else:
 if comment != '':
     pr.create_issue_comment(comment)
 
-if len(errors) > 0:
+if len(all_errors) > 0:
     sys.exit("\n Errors found. Exiting build ...")

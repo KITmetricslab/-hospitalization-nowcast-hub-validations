@@ -88,8 +88,8 @@ def check_value(df):
     if df.value.isnull().sum():
         errors.append(f'Missing values in column \'value\' are not allowed. {df.value.isnull().sum()} values are missing.')
     
-    if not all(df.value.astype(str).replace('.', '').str.isnumeric()):
-        non_numeric_values = df.value[~df.value.astype(str).replace('.', '').str.isnumeric()].dropna().to_list()
+    non_numeric_values = df.value[~df.value.astype(str).str.replace('.', '', regex = False).str.isnumeric()].dropna().to_list()
+    if len(non_numeric_values) > 0:
         errors.append(f'Non-numeric entries in column \'value\' are not allowed: {non_numeric_values}.')
     
     if len(errors) > 0:
