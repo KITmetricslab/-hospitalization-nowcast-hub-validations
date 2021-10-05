@@ -117,12 +117,13 @@ for file in other_files:
 
 # Print out errors    
 if len(all_errors) > 0:
-    comment+="\n\n Your submission has some validation errors. Please check the logs of the build under the \"Checks\" tab to get more details about the error. "
+    comment+=f"\n\n Your submission has some validation errors. Please check the logs of the build under the [Checks](https://github.com/KITmetricslab/hospitalization-nowcast-hub/pull/{pr_num}/checks) tab to get more details about the error. "
     for filename, errors in all_errors.items():
-        print("\n* ERROR IN ", filename)
+        print(f"\n* ERROR{'S' if len(errors) > 1 else ''} IN ", filename)
         for error in errors:
-            print(error)
-    print(f"\n✗ Error found in {len(errors)} file{'s' if len(errors) > 1 else ''}. Error details are above.")
+            print('\t-', error)
+            print('____________________')
+    print(f"\n✗ Errors found in {len(all_errors)} file{'s' if len(all_errors) > 1 else ''}. Error details are above.")
 else:
     print("\n✓ No errors.")
 

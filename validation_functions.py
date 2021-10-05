@@ -2,6 +2,9 @@ import os
 import pandas as pd
 import numpy as np
 
+VALID_COLUMNS = ['location', 'age_group', 'forecast_date', 'target_end_date', 'target', 
+                 'type', 'quantile', 'value', 'pathogen']
+
 LOCATION_CODES = ['DE', 'DE-BW', 'DE-BY', 'DE-HB', 'DE-HH', 'DE-HE', 'DE-NI',
                   'DE-NW', 'DE-RP', 'DE-SL', 'DE-SH', 'DE-BB', 'DE-MV', 'DE-SN',
                   'DE-ST', 'DE-TH', 'DE-BE']
@@ -11,6 +14,7 @@ VALID_TYPES = ['mean', 'quantile']
 VALID_AGE_GROUPS = ['00+', '00-04', '05-14', '15-34', '35-59', '60-79', '80+']
 VALID_TARGETS = [f'{_} wk ahead inc hosp' for _ in range(-2, 2)]
 VALID_PATHOGENS = ['COVID-19']
+
 
 def check_forecast_date(filepath):
     try:
@@ -84,8 +88,8 @@ def check_value(df):
     if df.value.isnull().sum():
         errors.append(f'Missing values in column \'value\' are not allowed. {df.value.isnull().sum()} values are missing.')
     
-    if not all(df.value.astype(str).str.isnumeric()):
-        non_numeric_values = df.value[~df.value.astype(str).str.isnumeric()].dropna().to_list()
+    if not all(df.value.astype(str).replace('.', '').str.isnumeric()):
+        non_numeric_values = df.value[~df.value.astype(str).replace('.', '').str.isnumeric()].dropna().to_list()
         errors.append(f'Non-numeric entries in column \'value\' are not allowed: {non_numeric_values}.')
     
     if len(errors) > 0:
