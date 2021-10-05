@@ -8,6 +8,8 @@ import sys
 from pathlib import Path
 import subprocess
 
+from validation_functions import *
+
 pat = re.compile(r"^data-processed/(.+)/\d\d\d\d-\d\d-\d\d-\1\.csv")
 pat_meta = re.compile(r"^data-processed/(.+)/metadata-\1\.txt$")
 
@@ -90,3 +92,44 @@ if deleted_forecasts:
 if changed_forecasts:
     pr.add_to_labels('forecast-updated')
     comment += "\n Your submission seem to have updated/renamed some forecasts. Could you provide a reason for the updation/deletion? Thank you!\n\n"
+    
+# Download all forecasts
+# create a forecasts directory
+os.makedirs('forecasts', exist_ok=True)
+
+# Download all forecasts changed in the PR into the forecasts folder that have not been deleted
+for f in forecasts:
+    if f.status != "removed":
+        urllib.request.urlretrieve(f.raw_url, f"forecasts/{f.filename.split('/')[-1]}")
+    
+# Run validations on each file that matches the naming convention
+errors = {}
+for file in glob.glob("forecasts/*.csv"):
+    error_file = check_forecast(file)
+    if len(error_file) > 0:
+        errors[os.path.basename(file)] = error_file
+
+
+# look for .csv files that dont match pat regex
+for file in other_files:
+    if file.filename[:14] == "data-processed" and ".csv" in file.filename:
+        err_message = "File seems to violate naming convention."
+        errors[file.filename] = [err_message]
+
+# Print out errors    
+if len(errors) > 0:
+    comment+="\n\n Your submission has some validation errors. Please check the logs of the build under the \"Checks\" tab to get more details about the error. "
+    for filename, errors in output_errors.items():
+        print("\n* ERROR IN ", filename)
+        for error in errors:
+            print(error)
+    print(f"\n✗ Error found in {len(errors)} file{'s' if len(errors) > 1 else ''}. Error details are above.")
+else:
+    print("\n✓ No errors.")
+
+# add the consolidated comment to the PR
+if comment != '':
+    pr.create_issue_comment(comment)
+
+if len(errors) > 0:
+    sys.exit("\n Errors found. Exiting build ...")
