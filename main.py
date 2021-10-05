@@ -5,8 +5,6 @@ import urllib.request
 import glob
 from github import Github
 import sys
-from pathlib import Path
-import subprocess
 
 from validation_functions import *
 
@@ -14,8 +12,8 @@ pat = re.compile(r"^data-processed/(.+)/\d\d\d\d-\d\d-\d\d-\1\.csv")
 pat_meta = re.compile(r"^data-processed/(.+)/metadata-\1\.txt$")
 
 token  = os.environ.get('GH_TOKEN')
-print("Added token")
-print(f"Token length: {len(token)}")
+# print("Added token")
+# print(f"Token length: {len(token)}")
     
 g = Github(token)
 repo_name = os.environ.get('GITHUB_REPOSITORY')
@@ -47,11 +45,9 @@ metadatas = [file for file in files_changed if pat_meta.match(file.filename) is 
 rawdatas = [file for file in files_changed if file.filename[0:8] == "data-raw"]
 other_files = [file for file in files_changed if (pat.match(file.filename) is None and pat_meta.match(file.filename) is None and file not in rawdatas)]
 
-print(forecasts)
 
 # IF there are other fiels changed in the PR 
-#TODO: If there are other files changed as well as forecast files added, then add a comment saying so. 
-if len(other_files) > 0 and len(forecasts) >0:
+if len(other_files) > 0 and len(forecasts) > 0:
     print(f"PR has other files changed too.")
     if pr is not None:
         pr.add_to_labels('other-files-updated')
@@ -104,6 +100,7 @@ for f in forecasts:
     
 # Run validations on each file that matches the naming convention
 all_errors = {}
+
 for file in glob.glob("forecasts/*.csv"):
     errors = check_forecast(file)
     if len(errors) > 0:
@@ -117,13 +114,18 @@ for file in other_files:
 
 # Print out errors    
 if len(all_errors) > 0:
-    comment+=f"\n\n Your submission has some validation errors. Please check the logs of the build under the [Checks](https://github.com/KITmetricslab/hospitalization-nowcast-hub/pull/{pr_num}/checks) tab to get more details about the error. "
+    
+    comment += f"\n\n Your submission has some validation errors. Please check the logs of the build under the [Checks](https://github.com/KITmetricslab/hospitalization-nowcast-hub/pull/{pr_num}/checks) tab to get more details about the error. "
+    
     for filename, errors in all_errors.items():
         print(f"\n* ERROR{'S' if len(errors) > 1 else ''} IN ", filename)
         for error in errors:
             print('-', error)
             print('-----------------------------')
+        print('\n\n')
+        
     print(f"\n✗ Errors found in {len(all_errors)} file{'s' if len(all_errors) > 1 else ''}. Error details are above.")
+    
 else:
     print("\n✓ No errors.")
 
