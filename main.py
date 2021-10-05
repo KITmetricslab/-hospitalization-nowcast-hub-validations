@@ -103,23 +103,22 @@ for f in forecasts:
         urllib.request.urlretrieve(f.raw_url, f"forecasts/{f.filename.split('/')[-1]}")
     
 # Run validations on each file that matches the naming convention
-errors = {}
+all_errors = {}
 for file in glob.glob("forecasts/*.csv"):
-    error_file = check_forecast(file)
-    if len(error_file) > 0:
-        errors[os.path.basename(file)] = error_file
+    errors = check_forecast(file)
+    if len(errors) > 0:
+        all_errors[os.path.basename(file)] = errors
 
 
 # look for .csv files that dont match pat regex
 for file in other_files:
     if file.filename[:14] == "data-processed" and ".csv" in file.filename:
-        err_message = "File seems to violate naming convention."
-        errors[file.filename] = [err_message]
+        all_errors[file.filename] = ["File seems to violate naming convention."]
 
 # Print out errors    
-if len(errors) > 0:
+if len(all_errors) > 0:
     comment+="\n\n Your submission has some validation errors. Please check the logs of the build under the \"Checks\" tab to get more details about the error. "
-    for filename, errors in output_errors.items():
+    for filename, errors in all_errors.items():
         print("\n* ERROR IN ", filename)
         for error in errors:
             print(error)
