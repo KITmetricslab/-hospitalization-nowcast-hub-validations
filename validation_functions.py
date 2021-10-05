@@ -12,47 +12,33 @@ VALID_AGE_GROUPS = ['00+', '00-04', '05-14', '15-34', '35-59', '60-79', '80+']
 VALID_TARGETS = [f'{_} wk ahead inc hosp' for _ in range(-2, 2)]
 VALID_PATHOGENS = ['COVID-19']
 
-def filename_match_forecast_date(filepath):
-    df = pd.read_csv(filepath)
+def check_forecast_date(filepath):
+    try:
+        file_forecast_date = pd.to_datetime(os.path.basename(filepath)[:10]).date()
+    except:
+        return f"Date of filename in wrong format: {os.path.basename(filepath)[:10]}. Should be yyyy-mm-dd."
+    
+    df = pd.read_csv(filepath)    
 
     if df.forecast_date.nunique() > 1:
-        return True, f"FORECAST DATE ERROR: {filepath} has multiple forecast dates: {df.forecast_date.unique()}." \
-            f"Forecast date must be unique." 
-    else:
-        file_forecast_date = pd.to_datetime(os.path.basename(filepath)[:10]).date()
+        return f"The file contains multiple forecast dates: {df.forecast_date.unique()}. Forecast date must be unique." 
+    
+    try:
         column_forecast_date = pd.to_datetime(df.forecast_date.iloc[0]).date()
-        today = pd.Timestamp('today', tz='Europe/Berlin').date()
-        
-        if file_forecast_date != column_forecast_date:
-            return True, f"FORECAST DATE ERROR: date of filename {filepath} does not match " \
-                f"forecast_date column {column_forecast_date}." 
-        
-        if abs(file_forecast_date - today).days > 1:
-            warning = f"Warning: The forecast is not made today. Date of the forecast - {file_forecast_date}, today - {today}."
-            print(f"::warning file={os.path.basename(filepath)}::{warning}")
-            return True, warning
-        else:
-            return False, "no errors"
+    except:
+        return f"Date in column \'forecast_date\' in wrong format: {df.forecast_date.iloc[0]}. Should be yyyy-mm-dd."
 
-def check_header(filepath):
-    df = pd.read_csv(filepath)
-    missing_cols = [c for c in VALID_COLUMNS if c not in df.columns]
-    additional_cols = [c for c in df.columns if c not in VALID_COLUMNS]
+    if file_forecast_date != column_forecast_date:
+        return f"Date of filename {filepath} does not match column \'forecast_date\': {column_forecast_date}." 
     
-    errors=[]
-    
-    if len(missing_cols) > 0:
-        errors.append(f'The following columns are missing: {missing_cols}. Please add them.')
-    
-    if len(additional_cols) > 0:
-        errors.append(f'The following columns are not accepted: {additional_cols}. Please remove them.')
-        
-    if len(errors) > 0:
-        return errors
-        
-def check_column_values(filepath):
-    df = pd.read_csv(filepath)
-    
+    if pd.to_datetime(os.path.basename(filepath)[:10]).day_name() != 'Monday':
+        return f"The forecast date is a {file_forecast_date.day_name()}. It should be a Monday."
+
+    today = pd.Timestamp('today', tz='Europe/Berlin').date()
+    if abs(file_forecast_date - today).days > 1:
+        return f"Warning: The forecast is not made today. Date of the forecast: {file_forecast_date}, today: {today}."
+
+def check_column_values(df):
     invalid_values = dict()
     invalid_values['location'] = [_ for _ in df.location.unique() if _ not in LOCATION_CODES]
     invalid_values['quantile'] = [_ for _ in df['quantile'].dropna().unique() if _ not in VALID_QUANTILES]
@@ -68,7 +54,22 @@ def check_column_values(filepath):
     
     if len(errors) > 0:
         return errors
+
+def check_header(df):
+    missing_cols = [c for c in VALID_COLUMNS if c not in df.columns]
+    additional_cols = [c for c in df.columns if c not in VALID_COLUMNS]
     
+    errors=[]
+    
+    if len(missing_cols) > 0:
+        errors.append(f'The following columns are missing: {missing_cols}. Please add them.')
+    
+    if len(additional_cols) > 0:
+        errors.append(f'The following columns are not accepted: {additional_cols}. Please remove them.')
+        
+    if len(errors) > 0:
+        return errors
+
 def check_target_dates(df):
     df['invalid_target_date'] = df.apply(lambda x: x.target_end_date != x.forecast_date + 
                                    pd.Timedelta(weeks = int(x.target.split(' ')[0]), days = -1), axis = 1)
@@ -76,9 +77,9 @@ def check_target_dates(df):
     invalid_target_dates = df.loc[df.invalid_target_date, ['forecast_date', 'target_end_date', 'target']].drop_duplicates()
     if len(invalid_target_dates) > 0:
         error = 'The following target_end_dates are wrong:\n\n' + invalid_target_dates.to_string(index = False)
-        return [error]
-    
-def check_values(df):
+        return error
+
+def check_value(df):
     errors = []
     if df.value.isnull().sum():
         errors.append(f'Missing values in column \'value\' are not allowed. {df.value.isnull().sum()} values are missing.')
@@ -101,20 +102,23 @@ def check_quantiles(df):
         error = 'Not all quantiles were provided in the following setting(s):\n\n' + \
             incomplete_quantiles.groupby(['location', 'age_group', 'target', 'target_end_date']
                                         )['quantile'].unique().to_string()
-        return [error]
+        return error
     
-def check_forecast(df):
+def check_forecast(filepath):
     errors = []
+    
+    result = check_forecast_date(filepath)
+    if result:
+        errors.append(result)
+    
+    df = pd.read_csv(filepath, parse_dates = ['forecast_date', 'target_end_date'])
+    
+    for check in [check_header, check_column_values, check_value, check_target_dates, check_quantiles]:
+        try:
+            result = check(df)
+            if result:
+                errors.extend(result if isinstance(result, list) else [result])
+        except:
+            errors.append(f"Fatal error: {check.__name__} could not be completed.")
 
-    for check in [check_values, check_target_dates, check_quantiles]:
-        result = check(df)
-        if result:
-            errors.extend(result)
-
-    if len(errors) == 0:
-        print('No errors.')
-
-    else:
-        for e in errors:
-            print(e)
-            print('__________')
+    return errors
