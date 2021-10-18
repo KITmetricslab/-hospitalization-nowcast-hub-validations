@@ -12,7 +12,7 @@ LOCATION_CODES = ['DE', 'DE-BW', 'DE-BY', 'DE-HB', 'DE-HH', 'DE-HE', 'DE-NI',
 VALID_QUANTILES = [0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975]
 VALID_TYPES = ['mean', 'quantile']
 VALID_AGE_GROUPS = ['00+', '00-04', '05-14', '15-34', '35-59', '60-79', '80+']
-VALID_TARGETS = [f'{_} wk ahead inc hosp' for _ in range(-2, 2)]
+VALID_TARGETS = [f'{_} day ahead inc hosp' for _ in range(-28, 15)]
 VALID_PATHOGENS = ['COVID-19']
 
 
@@ -34,9 +34,6 @@ def check_forecast_date(filepath):
 
     if file_forecast_date != column_forecast_date:
         return f"Date of filename {filepath} does not match column \'forecast_date\': {column_forecast_date}." 
-    
-    if pd.to_datetime(os.path.basename(filepath)[:10]).day_name() != 'Monday':
-        return f"The forecast date is a {file_forecast_date.day_name()}. It should be a Monday."
 
     today = pd.Timestamp('today', tz='Europe/Berlin').date()
     if abs(file_forecast_date - today).days > 1:
@@ -76,7 +73,7 @@ def check_header(df):
 
 def check_target_dates(df):
     df['invalid_target_date'] = df.apply(lambda x: x.target_end_date != x.forecast_date + 
-                                   pd.Timedelta(weeks = int(x.target.split(' ')[0]), days = -1), axis = 1)
+                                         pd.Timedelta(days = int(x.target.split(' ')[0])), axis = 1)
     
     invalid_target_dates = df.loc[df.invalid_target_date, ['forecast_date', 'target_end_date', 'target']].drop_duplicates()
     if len(invalid_target_dates) > 0:
@@ -94,6 +91,26 @@ def check_value(df):
     
     if len(errors) > 0:
         return errors
+    
+def check_mean(df):
+    n = df[df.type == 'mean']['quantile'].notnull().sum()
+    
+    if n > 0:
+        error = f"Rows with type \"mean\" should have NA in column \'quantile\'. This was violated {n} time{'s' if (n > 1) else ''}."
+        return error
+    
+def check_duplicates(df):
+    df_duplicated = df[df.duplicated(subset = ['location', 'age_group', 'forecast_date', 'target_end_date', 
+                           'target', 'type', 'quantile', 'pathogen'], keep = False)].copy()
+    
+    df_duplicated.sort_values(['location', 'age_group', 'forecast_date', 'target_end_date', 
+                           'target', 'type', 'quantile', 'pathogen'], inplace = True)
+    
+    n = len(df_duplicated)
+    
+    if n > 0:
+        error = f"Duplicated targets present. Occured {int(n/2)} time{'s' if (n > 2) else ''}. \n\n {df_duplicated.to_string()}"
+        return error
 
 def check_quantiles(df):
     df.loc[df.type != 'mean', 'no_quantiles'] = df[df.type != 'mean'].groupby(['location', 'age_group', 'target', 
@@ -117,7 +134,7 @@ def check_forecast(filepath):
     
     df = pd.read_csv(filepath, parse_dates = ['forecast_date', 'target_end_date'])
     
-    for check in [check_header, check_column_values, check_value, check_target_dates, check_quantiles]:
+    for check in [check_header, check_column_values, check_value, check_mean, check_duplicates, check_target_dates, check_quantiles]:
         try:
             result = check(df)
             if result:
