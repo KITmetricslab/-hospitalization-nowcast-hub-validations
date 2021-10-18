@@ -37,7 +37,7 @@ def check_forecast_date(filepath):
 
     today = pd.Timestamp('today', tz='Europe/Berlin').date()
     if abs(file_forecast_date - today).days > 1:
-        return f"Warning: The forecast is not made today. Date of the forecast: {file_forecast_date}, today: {today}."
+        return f"The forecast is not made today. Date of the forecast: {file_forecast_date}, today: {today}."
 
 def check_column_values(df):
     invalid_values = dict()
