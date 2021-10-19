@@ -109,7 +109,7 @@ def check_duplicates(df):
     n = len(df_duplicated)
     
     if n > 0:
-        error = f"Duplicated targets present. Occured {int(n/2)} time{'s' if (n > 2) else ''}. \n\n {df_duplicated.to_string()}"
+        error = f"Duplicated targets present. Check the following {n} rows. \n\n {df_duplicated.to_string()}"
         return error
 
 def check_quantiles(df):
