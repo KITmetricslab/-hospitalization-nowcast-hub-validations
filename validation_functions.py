@@ -112,18 +112,18 @@ def check_duplicates(df):
         error = f"Duplicated targets present. Check the following {n} rows. \n\n {df_duplicated.to_string()}"
         return error
 
-def check_quantiles(df):
-    df.loc[df.type != 'mean', 'no_quantiles'] = df[df.type != 'mean'].groupby(['location', 'age_group', 'target', 
-                                                                           'target_end_date'])['quantile'].transform('nunique')
+# def check_quantiles(df):
+#     df.loc[df.type != 'mean', 'no_quantiles'] = df[df.type != 'mean'].groupby(['location', 'age_group', 'target', 
+#                                                                            'target_end_date'])['quantile'].transform('nunique')
     
-    # note that we've already checked that no invalid quantiles are present
-    incomplete_quantiles = df[(df.no_quantiles <= 7) & df.no_quantiles.notnull()]
+#     # note that we've already checked that no invalid quantiles are present
+#     incomplete_quantiles = df[(df.no_quantiles != 7) & df.no_quantiles.notnull()]
     
-    if len(incomplete_quantiles) > 0:
-        error = 'Not all quantiles were provided in the following setting(s):\n\n' + \
-            incomplete_quantiles.groupby(['location', 'age_group', 'target', 'target_end_date']
-                                        )['quantile'].unique().to_string()
-        return error
+#     if len(incomplete_quantiles) > 0:
+#         error = 'Not all quantiles were provided in the following setting(s):\n\n' + \
+#             incomplete_quantiles.groupby(['location', 'age_group', 'target', 'target_end_date']
+#                                         )['quantile'].unique().to_string()
+#         return error
     
 def check_forecast(filepath):
     errors = []
@@ -134,7 +134,7 @@ def check_forecast(filepath):
     
     df = pd.read_csv(filepath, parse_dates = ['forecast_date', 'target_end_date'])
     
-    for check in [check_header, check_column_values, check_value, check_mean, check_duplicates, check_target_dates, check_quantiles]:
+    for check in [check_header, check_column_values, check_value, check_mean, check_duplicates, check_target_dates]:
         try:
             result = check(df)
             if result:
