@@ -135,3 +135,14 @@ if comment != '':
 
 if len(all_errors) > 0:
     sys.exit("\n Errors found. Exiting build ...")
+    
+forecasts_to_vis = False
+comment = "Preview of submission:\n\n"
+for f in forecasts:
+    if f.status != "removed":
+        forecasts_to_vis = True
+        vis_link = "https://jobrac.shinyapps.io/check_nowcast_submission/?file=" + f.raw_url
+        comment += vis_link + "\n\n"
+                
+if forecasts_to_vis:
+    pr.create_issue_comment(comment)
