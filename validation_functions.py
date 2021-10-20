@@ -117,7 +117,7 @@ def check_quantiles(df):
                                                                            'target_end_date'])['quantile'].transform('nunique')
     
     # note that we've already checked that no invalid quantiles are present
-    incomplete_quantiles = df[(df.no_quantiles != 7) & df.no_quantiles.notnull()]
+    incomplete_quantiles = df[(df.no_quantiles <= 7) & df.no_quantiles.notnull()]
     
     if len(incomplete_quantiles) > 0:
         error = 'Not all quantiles were provided in the following setting(s):\n\n' + \
