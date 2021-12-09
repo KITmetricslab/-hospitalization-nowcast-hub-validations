@@ -96,12 +96,12 @@ os.makedirs('forecasts', exist_ok=True)
 # Download all forecasts changed in the PR into the forecasts folder that have not been deleted
 for f in forecasts:
     if f.status != "removed":
-        urllib.request.urlretrieve(f.raw_url, f"forecasts/{f.filename.split('/')[-1]}")
+        urllib.request.urlretrieve(f.raw_url, f"forecasts/{f.filename}")
     
 # Run validations on each file that matches the naming convention
 all_errors = {}
 
-for file in glob.glob("forecasts/*.csv"):
+for file in glob.glob("forecasts/**/**/*.csv"):
     errors = check_forecast(file)
     if len(errors) > 0:
         all_errors[os.path.basename(file)] = errors

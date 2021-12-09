@@ -33,7 +33,7 @@ def check_forecast_date(filepath):
         return f"Date in column \'forecast_date\' in wrong format: {df.forecast_date.iloc[0]}. Should be yyyy-mm-dd."
 
     if file_forecast_date != column_forecast_date:
-        return f"Date of filename {filepath} does not match column \'forecast_date\': {column_forecast_date}." 
+        return f"Date of filename {os.path.basename(filepath)} does not match column \'forecast_date\': {column_forecast_date}." 
 
     today = pd.Timestamp('today', tz='Europe/Berlin').date()
     if ('retrospective' not in filepath) and (abs(file_forecast_date - today).days > 0):
