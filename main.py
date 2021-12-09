@@ -96,11 +96,8 @@ os.makedirs('forecasts', exist_ok=True)
 # Download all forecasts changed in the PR into the forecasts folder that have not been deleted
 for f in forecasts:
     if f.status != "removed":
-        print('f.filename: ', f.filename)
-        print(f"forecasts/{f.filename}")
-        p = os.path.dirname(os.path.abspath(f.filename))
-        print(p)
-        os.makedirs('forecasts/' + p, exist_ok)     
+        # create subdirectory so we know if it's a retrospective submission
+        os.makedirs('forecasts/' + filepath.rsplit('/', 1)[0], exist_ok=True)   
         urllib.request.urlretrieve(f.raw_url, f"forecasts/{f.filename}")
     
 # Run validations on each file that matches the naming convention
