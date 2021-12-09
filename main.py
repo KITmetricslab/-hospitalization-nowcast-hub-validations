@@ -8,7 +8,7 @@ import sys
 
 from validation_functions import *
 
-pat = re.compile(r"^data-processed/(.+)/\d\d\d\d-\d\d-\d\d-\1\.csv")
+pat = re.compile(r"^data-processed(?:_retrospective)?/(.+)/\d\d\d\d-\d\d-\d\d-\1\.csv")
 pat_meta = re.compile(r"^data-processed/(.+)/metadata-\1\.txt$")
 
 token  = os.environ.get('GH_TOKEN')
