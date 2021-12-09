@@ -98,6 +98,9 @@ for f in forecasts:
     if f.status != "removed":
         print('f.filename: ', f.filename)
         print(f"forecasts/{f.filename}")
+        p = os.path.dirname(os.path.abspath(f.filename))
+        print(p)
+        os.makedirs('forecasts/' + p, exist_ok)     
         urllib.request.urlretrieve(f.raw_url, f"forecasts/{f.filename}")
     
 # Run validations on each file that matches the naming convention
