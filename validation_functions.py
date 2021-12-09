@@ -36,6 +36,11 @@ def check_forecast_date(filepath):
         return f"Date of filename {os.path.basename(filepath)} does not match column \'forecast_date\': {column_forecast_date}." 
 
     today = pd.Timestamp('today', tz='Europe/Berlin').date()
+    
+    print(filepath)
+    print('retrospective' not in filepath)
+    print('retrospective' not in filepath) and (abs(file_forecast_date - today).days > 0)
+    
     if ('retrospective' not in filepath) and (abs(file_forecast_date - today).days > 0):
         return f"The forecast is not made today. Date of the forecast: {file_forecast_date}, today: {today}."
 
