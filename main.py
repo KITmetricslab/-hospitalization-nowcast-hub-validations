@@ -104,7 +104,6 @@ for f in forecasts:
 all_errors = {}
 
 for file in glob.glob("forecasts/**/**/*.csv"):
-    print('file: ', file)
     errors = check_forecast(file)
     if len(errors) > 0:
         all_errors[os.path.basename(file)] = errors
