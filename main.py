@@ -97,7 +97,7 @@ os.makedirs('forecasts', exist_ok=True)
 for f in forecasts:
     if f.status != "removed":
         # create subdirectory so we know if it's a retrospective submission
-        os.makedirs('forecasts/' + filepath.rsplit('/', 1)[0], exist_ok=True)   
+        os.makedirs('forecasts/' + f.filename.rsplit('/', 1)[0], exist_ok=True)   
         urllib.request.urlretrieve(f.raw_url, f"forecasts/{f.filename}")
     
 # Run validations on each file that matches the naming convention
