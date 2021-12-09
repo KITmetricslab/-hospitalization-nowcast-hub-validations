@@ -95,9 +95,9 @@ os.makedirs('forecasts', exist_ok=True)
 
 # Download all forecasts changed in the PR into the forecasts folder that have not been deleted
 for f in forecasts:
-    print('contents_url': f.contents_url)
-    print('blob_url': f.blob_url)
-    print('raw_url': f.raw_url)
+    print('contents_url: ', f.contents_url)
+    print('blob_url: ', f.blob_url)
+    print('raw_url: ', f.raw_url)
     if f.status != "removed":
         urllib.request.urlretrieve(f.raw_url, f"forecasts/{f.raw_url}")
     
