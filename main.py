@@ -65,6 +65,11 @@ if len(rawdatas) > 0:
 if len(forecasts) > 0:
     if pr is not None:
         pr.add_to_labels('data-submission')
+        
+for f in forecasts:
+    print(f.filename)
+    if 'test_automerge' in f.filename:
+        pr.add_to_labels('automerge')
 
 
 deleted_forecasts = False
