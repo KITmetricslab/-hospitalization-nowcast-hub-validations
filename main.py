@@ -66,12 +66,6 @@ if len(forecasts) > 0:
     if pr is not None:
         pr.add_to_labels('data-submission')
         
-for f in forecasts:
-    print(f.filename)
-    if 'test_automerge' in f.filename:
-        pr.add_to_labels('automerge')
-
-
 deleted_forecasts = False
 changed_forecasts = False
 
@@ -134,6 +128,7 @@ if len(all_errors) > 0:
     print(f"\n✗ Errors found in {len(all_errors)} file{'s' if len(all_errors) > 1 else ''}. Error details are above.")
     
 else:
+    pr.add_to_labels('automerge')
     print("\n✓ No errors.")
 
 # add the consolidated comment to the PR
