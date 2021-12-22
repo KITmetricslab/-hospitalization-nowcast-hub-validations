@@ -44,7 +44,7 @@ forecasts = [file for file in files_changed if pat.match(file.filename) is not N
 metadatas = [file for file in files_changed if pat_meta.match(file.filename) is not None]
 rawdatas = [file for file in files_changed if file.filename[0:8] == "data-raw"]
 other_files = [file for file in files_changed if (pat.match(file.filename) is None and pat_meta.match(file.filename) is None and file not in rawdatas and
-                                                 file.filename.split('/')[-1] not in ['documentation_members.csv', 'expected_members.csv])]
+                                                 file.filename.split('/')[-1] not in ['documentation_members.csv', 'expected_members.csv'])]
 
 
 # IF there are other fiels changed in the PR 
